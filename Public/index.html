@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Twitter Sentimental analyst</title>
+    <meta name="description" content="Twitter">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- import the webpage's stylesheet -->
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <div class="container">
+      <div class="sentiment-container">
+          <span class="positive">😍</span>
+          <span class="neutral">😐</span>
+          <span class="negative">🤬</span>
+      </div>
+      <div id="impact" style="color: white"></div>
+      <div class="tweet-container">
+        <div class="tweet-handle-container">
+            <div class="tweet-handle-image">
+              <img id="user-image" src="https://pbs.twimg.com/profile_images/637112077258113024/Agd2uC7a_400x400.jpg" />
+            </div>
+            <div class="tweet-handle-name">
+              <p id="user-name">Sentiment Analyst</p>
+              <p id="user-description">Using twitter stream API</p>
+              <p id="created-at">created at</p>
+            </div>
+          </div>
+        <div class="tweet-content" id="content">
+            Let the tweets slide one by one 
+        </div>
+        
+      </div>
+ 
+    </div>
+    <footer>
+      Created 2020
+    </footer>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script>
+      const socket = io();
+      const apiSentimentalAnalysis = ' https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/56a3d3ca-7de6-4ffc-a1c9-b45e938e0898?verbose=true&timezoneOffset=-360&subscription-key=77b4f51b894f4ff8a709de740ba829c5=';
+      const tweetArray = [];
+      const refresh = 2000;
+      let index = 0;
+      const findTweet = id => tweetArray.find(e => e.id === id);
+
+
+      tweetCheck();
+
+      socket.on('connect',function(data){
+         console.log('connected');
+      })
+
+      socket.on('tweet', ({tweet}) => {
+          if(tweet.retweeted_status || tweet.text.startsWith('RT') || findTweet(tweet.id)) {
+            console.warn('filtering RT... or repeated tweet', tweet);
+            return;
+          }
+          console.log(tweet);
+          const createAt = new Date(tweet.created_at);
+          let tweetbody = {
+            'id': tweet.id,
+            'text': tweet.truncated ? tweet.extended_tweet.full_text : tweet.text,
+            'userScreenName': "@" + tweet.user.screen_name,
+            'userImage': tweet.user.profile_image_url_https,
+            'createdAt': `${createAt.toLocaleTimeString()} - ${createAt.toLocaleDateString()}`,  
+            'userDescription': tweet.user.description,
+            'impact': `Direct Impact: ${tweet.user.followers_count} Users`           
+          };
+          getSentiment(tweetbody.text).then(res => {
+            console.log('sentimentAnalysis', res);
+            tweetbody.sentimentAnalysis = res.sentimentAnalysis;
+            tweetArray.push(tweetbody);    
+            console.log(tweetArray);
+          })
+      });
+
+      function tweetCheck() {
+        if(tweetArray.length > index) {
+          const currentTweet = tweetArray[index];
+          index++;
+          tweetPrint(currentTweet);
+        }
+        setTimeout(tweetCheck, refresh);
+      }
+
+      const tweetPrint = (tweet) => {
+        $('#user-name').html(tweet.userScreenName);
+        $('#user-description').html(tweet.userDescription);
+        $('#content').html(tweet.text);
+        $("#user-image").attr("src",tweet.userImage);
+        $('#created-at').html(tweet.createdAt);
+        $('#impact').html(tweet.impact);
+        if(tweet.sentimentAnalysis) {
+          sentimentPrint(tweet.sentimentAnalysis.score);
+        }
+      }
+
+      const getSentiment = (phrase) => {
+        return fetch(`${apiSentimentalAnalysis}${phrase}`)
+          .then(res => res.json());
+      }
+
+      const sentimentPrint = score => {
+        console.log(score);
+        if(score > 0.6) {
+          $('.positive').show();
+          $('.negative').hide();
+          $('.neutral').hide();
+        } else if(score < 0.4) {
+          $('.negative').show();
+          $('.positive').hide();
+          $('.neutral').hide();
+        } else {
+          $('.neutral').show();
+          $('.negative').hide();
+          $('.positive').hide();
+        }
+      }
+
+    </script>
+  </body>
+</html>
