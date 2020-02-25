@@ -12,10 +12,10 @@ const path = require('path');
 // console.log(execSync('ls').toString('utf8'));
 
 const T = new Twit({
-  consumer_key:         'MWQadaodeKZ02FPTfkJA8OhF9',
-  consumer_secret:      'hVGVTiEtAEFwzLZLB6gpa8IaI2xrdv7l4G7S61QyvI3lrPwcU3',
-  access_token:         '2942702198-rybhZK6kteq3c1KyIoAAMtV3C49Q8LlU2VkQcz5',
-  access_token_secret:  'ErFaebAlbAfL1e4yh2NjEx1VDFdQq8En6OurUbHYyUKKY',
+  consumer_key:         'ABQadaodeVX02FjdhfkdjhfOhF9',
+  consumer_secret:      'hTYYUiEtAEFwzLZLB6gpa8IaI2kdjfkjd7l4G7S61QyvI3l',
+  access_token:         '2942709494-rybhXCVDkteq3c1KyIoAAMtV3C49Q8UHKF837',
+  access_token_secret:  'FaGD948549AfL1e4yh2NjExHDJHD83743n6OurUbHYyUKKY',
   timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests.
 });
 
